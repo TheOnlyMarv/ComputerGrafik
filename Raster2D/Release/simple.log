@@ -1,8 +1,0 @@
-﻿  simple.cpp
-simple.cpp(216): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-simple.cpp(222): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-simple.cpp(223): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-simple.cpp(229): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-simple.cpp(230): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-  simple.vcxproj -> C:\Users\Marvin\Source\Repos\ComputerGrafik\Raster2D\Release\simple.exe
-  simple.vcxproj -> Release\simple.pdb (Full PDB)

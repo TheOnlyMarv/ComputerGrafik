@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
 
 	SetupRC();
 	////////// put your framebuffer drawing code here /////////////
-	// test1();
+	test1();
 	test2();
 	/////////////////////////////////
 	glutMainLoop();
