@@ -236,6 +236,44 @@ void drawSun(int numberOfLines)
 	}
 }
 
+void drawCircle(int Radius, int xC, int yC)
+{
+	int P;
+	int x, y;
+	void drawCirclePoint(int x, int y, int xC, int yC);
+	P = 1 - Radius;
+	x = 0;
+	y = Radius;
+	drawCirclePoint(x, y, xC, yC);
+	while (x <= y)
+	{
+		x++;
+		if (P<0)
+		{
+			P += 2 * x + 1;
+		}
+		else
+		{
+			P += 2 * (x - y) + 1;
+			y--;
+		}
+		drawCirclePoint(x, y, xC, yC);
+	}
+
+}
+
+void drawCirclePoint(int x, int y, int xC, int yC)
+{
+	setPixel(xC + x, yC + y, 0.0f, 1.0f, 0.0f);
+	setPixel(xC + x, yC - y, 0.0f, 1.0f, 0.0f);
+	setPixel(xC - x, yC + y, 0.0f, 1.0f, 0.0f);
+	setPixel(xC - x, yC - y, 0.0f, 1.0f, 0.0f);
+	setPixel(xC + y, yC + x, 0.0f, 1.0f, 0.0f);
+	setPixel(xC - y, yC + x, 0.0f, 1.0f, 0.0f);
+	setPixel(xC + y, yC - x, 0.0f, 1.0f, 0.0f);
+	setPixel(xC - y, yC - x, 0.0f, 1.0f, 0.0f);
+}
+
 void test1()
 {
 	drawFancyLine();
@@ -252,6 +290,12 @@ void test2()
 	writeToPPM("testB.ppm");
 }
 
+void testCircle()
+{
+	drawCircle(100, 128, 128);
+	writeToPPM("testCircle.ppm");
+}
+
 ///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
@@ -265,8 +309,11 @@ int main(int argc, char* argv[])
 
 	SetupRC();
 	////////// put your framebuffer drawing code here /////////////
+
 	test1();
 	test2();
+	testCircle();
+
 	/////////////////////////////////
 	glutMainLoop();
 
