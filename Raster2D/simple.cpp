@@ -10,11 +10,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <iostream>
-#include <fstream>
-
-using namespace std;
-
 const int RESOLUTION = 256;
 
 struct RGBPixel {
@@ -67,16 +62,6 @@ void KeyPress(unsigned char key, int x, int y)
 	}
 }
 
-void saveAsPpm(char* path) {
-	ofstream file;
-	file.open(path);
-	file << "P3\n";
-	file << RESOLUTION + " " + RESOLUTION;
-	file << "255\n";
-
-	file.close();
-}
-
 ///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
@@ -94,7 +79,7 @@ int main(int argc, char* argv[])
 	for (int n = 0; n < RESOLUTION; n++)
 		setPixel(n, n, GLfloat(n) / RESOLUTION, 0, 1.0f - GLfloat(n) / RESOLUTION);
 
-	saveAsPpm("bild.ppm");
+
 /////////////////////////////////
 	glutMainLoop();
     
