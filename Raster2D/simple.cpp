@@ -211,17 +211,10 @@ void drawMidpointLine(int x1, int y1, int x2, int y2, GLfloat r, GLfloat g, GLfl
 	}
 }
 
-RGBPixel getGradientPixel(float colorValue)
+RGBPixel getColor(float colorValue)
 {
-	int colorCode = round(colorValue * 255 * 255 * 255);
-
-	int b = colorCode % 255;
-	colorCode /= 255;
-	int g = colorCode % 255;
-	colorCode /= 255;
-	int r = colorCode;
-
-	return RGBPixel(r / 255.0f, g / 255.0f, b / 255.0f);
+	colorValue = 0.1 + colorValue * 0.9;
+	return RGBPixel(colorValue, colorValue, colorValue);
 }
 
 void drawSun(int numberOfLines)
@@ -237,7 +230,7 @@ void drawSun(int numberOfLines)
 		int y2 = mid_y + round(radius * sin(angle));
 
 		float colorValue = (float)i / numberOfLines;
-		RGBPixel currentLineColor = getGradientPixel(colorValue);
+		RGBPixel currentLineColor = getColor(colorValue);
 
 		drawBresenhamLine(mid_x, mid_y, x2, y2, currentLineColor.R, currentLineColor.G, currentLineColor.B);
 	}
@@ -255,7 +248,7 @@ void test1()
 
 void test2()
 {
-	drawSun(INT_MAX);
+	drawSun(16);
 	writeToPPM("testB.ppm");
 }
 
