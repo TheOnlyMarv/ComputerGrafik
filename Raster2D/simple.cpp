@@ -9,6 +9,7 @@
 #include "glut.h"			// Glut (Free-Glut on Windows)
 
 #include <math.h>
+#include <iostream>
 #include <stdio.h>
 #include <fstream>
 #include <stdlib.h>
@@ -274,6 +275,35 @@ void drawCirclePoint(int x, int y, int xC, int yC)
 	setPixel(xC - y, yC - x, 0.0f, 1.0f, 0.0f);
 }
 
+struct Point {
+	int x, y;
+	Point() {};
+	Point(int x, int y) : x(x), y(y) {
+	}
+};
+
+void Casteljau() {
+	const int n = 5;
+	Point points[] = { Point(1,1), Point(50,60), Point(90, 60), Point(95, 3), Point(5,72) }; // n-Points
+	Point temp[n][n];
+	for (double t = 0; t <= 1.0; t += 0.0001)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			temp[i][0] = points[i];
+		}
+		for (int j = 1; j < n; j++)
+		{
+			for (int i = j; i < n; i++)
+			{
+				temp[i][j].x = (1 - t) * temp[i - 1][j - 1].x + t*temp[i][j - 1].x;
+				temp[i][j].y = (1 - t) * temp[i - 1][j - 1].y + t*temp[i][j - 1].y;
+			}
+		}
+		setPixel(temp[n - 1][n - 1].x, temp[n - 1][n - 1].y, 0.0f, 1.0f, 0.0f);
+	}
+}
+
 void test1()
 {
 	drawFancyLine();
@@ -313,6 +343,7 @@ int main(int argc, char* argv[])
 	test1();
 	test2();
 	testCircle();
+	Casteljau();
 
 	/////////////////////////////////
 	glutMainLoop();
