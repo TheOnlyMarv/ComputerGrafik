@@ -282,10 +282,12 @@ struct Point {
 	}
 };
 
-void Casteljau() {
-	const int n = 5;
-	Point points[] = { Point(1,1), Point(50,60), Point(90, 60), Point(95, 3), Point(5,72) }; // n-Points
-	Point temp[n][n];
+void Casteljau(Point* points, int n) {
+	// Strange instantiate, because for normal instantiation, you need a constant n
+	Point** temp = new Point*[n];
+	for (int i = 0; i < n; i++)
+		temp[i] = new Point[n];
+
 	for (double t = 0; t <= 1.0; t += 0.0001)
 	{
 		for (int i = 0; i < n; i++)
@@ -302,6 +304,12 @@ void Casteljau() {
 		}
 		setPixel(temp[n - 1][n - 1].x, temp[n - 1][n - 1].y, 0.0f, 1.0f, 0.0f);
 	}
+}
+
+void testCasteljau() {
+	Point points[] = { Point(100,100), Point(100,150), Point(200, 150), Point(200, 100), Point(230, 50) };
+	Casteljau(points, sizeof(points) / sizeof(Point));
+	writeToPPM("testCasteljau.ppm");
 }
 
 void test1()
@@ -340,10 +348,10 @@ int main(int argc, char* argv[])
 	SetupRC();
 	////////// put your framebuffer drawing code here /////////////
 
-	test1();
+	/*test1();
 	test2();
-	testCircle();
-	Casteljau();
+	testCircle();*/
+	testCasteljau();
 
 	/////////////////////////////////
 	glutMainLoop();
