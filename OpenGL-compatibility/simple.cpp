@@ -16,6 +16,9 @@ void RenderScene(void)
 	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+
 	// Flush drawing commands
     glFlush();
 }
