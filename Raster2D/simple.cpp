@@ -14,6 +14,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 
 const int RESOLUTION = 256;
 
@@ -249,7 +250,7 @@ void drawCircle(int Radius, int xC, int yC)
 	while (x <= y)
 	{
 		x++;
-		if (P<0)
+		if (P < 0)
 		{
 			P += 2 * x + 1;
 		}
@@ -280,6 +281,22 @@ struct Point {
 	Point() {};
 	Point(int x, int y) : x(x), y(y) {
 	}
+
+	Point Point::operator+(const Point pt) const
+	{
+		Point temp;
+		temp.x = x + pt.x;
+		temp.y = y + pt.y;
+		return temp;
+	}
+
+	Point Point::operator*(double m) const
+	{
+		Point temp;
+		temp.x = x*m;
+		temp.y = y*m;
+		return temp;
+	}
 };
 
 void Casteljau(Point* points, int n) {
@@ -303,6 +320,130 @@ void Casteljau(Point* points, int n) {
 			}
 		}
 		setPixel(temp[n - 1][n - 1].x, temp[n - 1][n - 1].y, 0.0f, 1.0f, 0.0f);
+	}
+}
+
+void fillRectangle(Point p0, Point p1) {
+	for (int y = p0.y; y <= p1.y; y++)
+	{
+		for (int x = p0.x; x <= p1.x; x++)
+		{
+			/*std::cout << x << " " << y;*/
+			setPixel(x, y, 0.0f, 1.0f, 0.0f);
+		}
+	}
+}
+
+void fillTriangle(Point p0, Point p1, Point p2) {
+	int minX = min(p0.x, min(p1.x, p2.x));
+	int minY = min(p0.y, min(p1.y, p2.y));
+	int maxX = max(p0.x, max(p1.x, p2.x));
+	int maxY = max(p0.y, max(p1.y, p2.y));
+
+	int f0 = (p0.y - p1.y) * (minX - p0.x) + (p1.x - p0.x) * (minY - p0.y);
+	int f1 = (p1.y - p2.y) * (minX - p1.x) + (p2.x - p1.x) * (minY - p1.y);
+	int f2 = (p2.y - p0.y) * (minX - p2.x) + (p0.x - p2.x) * (minY - p2.y);
+
+	for (int y = minY; y <= maxY; y++)
+	{
+		int ff0 = f0, ff1 = f1, ff2 = f2;
+		for (int x = minX; x < maxX; x++)
+		{
+			if (ff0 >= 0 && ff1 >= 0 && ff2 >= 0)
+				setPixel(x, y, 1.0f, 0.0f, 0.0f);
+			ff0 = ff0 + (p0.y - p1.y);
+			ff1 = ff1 + (p1.y - p2.y);
+			ff2 = ff2 + (p2.y - p0.y);
+		}
+		f0 = f0 + (p1.x - p0.x);
+		f1 = f1 + (p2.x - p1.x);
+		f2 = f2 + (p0.x - p2.x);
+	}
+}
+
+struct EdgePassiv {
+	float minY, minX, maxY, maxX;
+	EdgePassiv(float minY, float minX, float maxY, float maxX): minY(minY), minX(minX), maxY(maxY), maxX(maxX) {
+
+	}
+};
+
+struct EdgeAktiv {
+	float xs, dx, maxY;
+	EdgeAktiv(float xs, float dx, float maxY): xs(xs), dx(dx), maxY(maxY) {
+
+	}
+};
+
+int compPassiv(const void *one, const void *two)
+{
+	EdgePassiv a = *((EdgePassiv*)one);
+	EdgePassiv b = *((EdgePassiv*)two);
+	if (a.minY<b.minY)
+		return -1;
+	if (a.minY == b.minY)
+		return 0;
+	return 1;
+}
+
+int compActiv(const void *one, const void *two)
+{
+	EdgeAktiv a = *((EdgeAktiv*)one);
+	EdgeAktiv b = *((EdgeAktiv*)two);
+	if (a.xs<b.xs)
+		return -1;
+	if (a.xs == b.xs)
+		return 0;
+	return 1;
+}
+
+void fillPolygon(Point* points, int n) {
+	int minY = INT32_MAX, maxY = 0;
+	for (int i = 0; i < n; i++)
+	{
+		minY = min(minY, points[i].y);
+		maxY = max(maxY, points[i].y);
+	}
+	
+	std::vector<EdgePassiv> edgesPassiv, edgesActive;
+	std::vector<EdgeAktiv> edgesActiv;
+
+	for (int i = 0; i < n; i++)
+	{
+		int j = (i + 1) % n;
+		float minY = min(points[i].y, points[j].y), minX = min(points[i].x, points[j].x), maxY = max(points[i].y, points[j].y), maxX = max(points[i].x, points[j].x);
+		edgesPassiv.push_back(EdgePassiv(minY, minX, maxY, maxX));
+	}
+
+	std::qsort(&edgesPassiv[0], edgesPassiv.size(), sizeof(EdgePassiv), compPassiv);
+
+	for (int y = minY; y <= maxY; y++)
+	{
+		for (int i = 0; i < edgesPassiv.size(); i++)
+		{
+			if (y == edgesPassiv[i].minY) {
+				EdgePassiv ep = edgesPassiv[i]; edgesPassiv.erase(edgesPassiv.begin() + i);
+				edgesActiv.push_back(EdgeAktiv(ep.minX, (ep.maxX - ep.minX) / (ep.maxY - ep.minX), ep.maxY));
+			}
+		}
+		for (int i = 0; i < edgesActiv.size(); i++)
+		{
+			if (y == edgesActiv[i].maxY) {
+				edgesActiv.erase(edgesActiv.begin() + i);
+			}
+		}
+		qsort(&edgesActiv[0], edgesActiv.size(), sizeof(EdgeAktiv), compActiv);
+
+		for (int i = 0; i < edgesActiv.size(); i++)
+		{
+			for (int x = edgesActiv[i].xs; x <= edgesActiv[i + 1].xs; x++) {
+				setPixel(x, y, 0.5f, 1.0f, 0.0f);
+			}
+		}
+
+		for (int i = 0; i < edgesActiv.size(); i++) {
+			edgesActiv[i].xs += edgesActiv[i].dx;
+		}
 	}
 }
 
@@ -334,6 +475,22 @@ void testCircle()
 	writeToPPM("testCircle.ppm");
 }
 
+void testFilledRectangle() {
+	fillRectangle(Point(200, 200), Point(220, 240));
+	writeToPPM("testFilledRectangle.ppm");
+}
+
+void testFillTriangle() {
+	fillTriangle(Point(50, 50), Point(100, 100), Point(60, 120));
+	writeToPPM("testFillTriangle.ppm");
+}
+
+void testFillPolygon() {
+	Point points[] = { Point(50, 50), Point(100, 100), Point(60, 120) };
+	fillPolygon(points, sizeof(points) / sizeof(Point));
+	writeToPPM("testFillPolygon.ppm");
+}
+
 ///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
@@ -351,10 +508,13 @@ int main(int argc, char* argv[])
 	/*test1();
 	test2();
 	testCircle();*/
-	testCasteljau();
+	/*testCasteljau();*/
+	/*testFilledRectangle();*/
+	/*testFillTriangle();*/
+	testFillPolygon();
 
 	/////////////////////////////////
 	glutMainLoop();
 
 	return 0;
-} 
+}
