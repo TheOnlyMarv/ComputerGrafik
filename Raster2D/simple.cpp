@@ -397,23 +397,29 @@ int compActiv(const void *one, const void *two)
 	return 1;
 }
 
-void fillPolygon(Point* points, int n) {
-	int minY = INT32_MAX, maxY = 0;
-	for (int i = 0; i < n; i++)
-	{
-		minY = min(minY, points[i].y);
-		maxY = max(maxY, points[i].y);
-	}
-	
-	std::vector<EdgePassiv> edgesPassiv, edgesActive;
-	std::vector<EdgeAktiv> edgesActiv;
-
+std::vector<EdgePassiv> createEdges(Point* points, int n) {
+	std::vector<EdgePassiv> edgesPassiv;
 	for (int i = 0; i < n; i++)
 	{
 		int j = (i + 1) % n;
 		float minY = min(points[i].y, points[j].y), minX = min(points[i].x, points[j].x), maxY = max(points[i].y, points[j].y), maxX = max(points[i].x, points[j].x);
 		edgesPassiv.push_back(EdgePassiv(minY, minX, maxY, maxX));
 	}
+	return edgesPassiv;
+}
+
+void fillPolygon(Point* points, int n) {
+	int minY = INT32_MAX, minX = INT32_MAX, maxY = 0, maxX = 0;
+	for (int i = 0; i < n; i++)
+	{
+		minY = min(minY, points[i].y);
+		maxY = max(maxY, points[i].y);
+		minX = min(minX, points[i].x);
+		maxX = max(maxX, points[i].x);
+	}
+	
+	std::vector<EdgePassiv> edgesPassiv = createEdges(points, n);
+	std::vector<EdgeAktiv> edgesActiv;
 
 	std::qsort(&edgesPassiv[0], edgesPassiv.size(), sizeof(EdgePassiv), compPassiv);
 
@@ -423,18 +429,20 @@ void fillPolygon(Point* points, int n) {
 		{
 			if (y == edgesPassiv[i].minY) {
 				EdgePassiv ep = edgesPassiv[i]; edgesPassiv.erase(edgesPassiv.begin() + i);
-				edgesActiv.push_back(EdgeAktiv(ep.minX, (ep.maxX - ep.minX) / (ep.maxY - ep.minX), ep.maxY));
+				i--;
+				edgesActiv.push_back(EdgeAktiv(ep.minX, (ep.maxX - ep.minX) / (ep.maxY - ep.minY), ep.maxY));
 			}
 		}
 		for (int i = 0; i < edgesActiv.size(); i++)
 		{
 			if (y == edgesActiv[i].maxY) {
 				edgesActiv.erase(edgesActiv.begin() + i);
+				i--;
 			}
 		}
 		qsort(&edgesActiv[0], edgesActiv.size(), sizeof(EdgeAktiv), compActiv);
 
-		for (int i = 0; i < edgesActiv.size(); i++)
+		for (int i = 0; i < edgesActiv.size(); i+=2)
 		{
 			for (int x = edgesActiv[i].xs; x <= edgesActiv[i + 1].xs; x++) {
 				setPixel(x, y, 0.5f, 1.0f, 0.0f);
@@ -482,12 +490,14 @@ void testFilledRectangle() {
 
 void testFillTriangle() {
 	fillTriangle(Point(50, 50), Point(100, 100), Point(60, 120));
+	glFlush();
 	writeToPPM("testFillTriangle.ppm");
 }
 
 void testFillPolygon() {
 	Point points[] = { Point(50, 50), Point(100, 100), Point(60, 120) };
 	fillPolygon(points, sizeof(points) / sizeof(Point));
+	glFlush();
 	writeToPPM("testFillPolygon.ppm");
 }
 
@@ -510,7 +520,7 @@ int main(int argc, char* argv[])
 	testCircle();*/
 	/*testCasteljau();*/
 	/*testFilledRectangle();*/
-	/*testFillTriangle();*/
+	//testFillTriangle();
 	testFillPolygon();
 
 	/////////////////////////////////
