@@ -334,30 +334,34 @@ void fillRectangle(Point p0, Point p1) {
 	}
 }
 
-void fillTriangle(Point p0, Point p1, Point p2) {
-	int minX = min(p0.x, min(p1.x, p2.x));
-	int minY = min(p0.y, min(p1.y, p2.y));
-	int maxX = max(p0.x, max(p1.x, p2.x));
-	int maxY = max(p0.y, max(p1.y, p2.y));
+void fillTriangle(Point p1, Point p2, Point p3) {
+	int minX = min(p1.x, min(p2.x, p3.x));
+	int minY = min(p1.y, min(p2.y, p3.y));
+	int maxX = max(p1.x, max(p2.x, p3.x));
+	int maxY = max(p1.y, max(p2.y, p3.y));
 
-	int f0 = (p0.y - p1.y) * (minX - p0.x) + (p1.x - p0.x) * (minY - p0.y);
-	int f1 = (p1.y - p2.y) * (minX - p1.x) + (p2.x - p1.x) * (minY - p1.y);
-	int f2 = (p2.y - p0.y) * (minX - p2.x) + (p0.x - p2.x) * (minY - p2.y);
+	int f0 = (p1.y - p2.y) * (minX - p1.x) + (p2.x - p1.x) * (minY - p1.y);
+	int f1 = (p2.y - p3.y) * (minX - p2.x) + (p3.x - p2.x) * (minY - p2.y);
+	int f2 = (p3.y - p1.y) * (minX - p3.x) + (p1.x - p3.x) * (minY - p3.y);
 
 	for (int y = minY; y <= maxY; y++)
 	{
 		int ff0 = f0, ff1 = f1, ff2 = f2;
 		for (int x = minX; x < maxX; x++)
 		{
-			if (ff0 >= 0 && ff1 >= 0 && ff2 >= 0)
-				setPixel(x, y, 1.0f, 0.0f, 0.0f);
-			ff0 = ff0 + (p0.y - p1.y);
-			ff1 = ff1 + (p1.y - p2.y);
-			ff2 = ff2 + (p2.y - p0.y);
+			if (ff0 >= 0 && ff1 >= 0 && ff2 >= 0) {
+				float alpha = ((p2.y - p3.y)*(x - p3.x) + (p3.x - p2.x)*(y - p3.y)) / (float)((p2.y - p3.y)*(p1.x - p3.x) + (p3.x - p2.x)*(p1.y - p3.y));
+				float beta = ((p3.y - p1.y)*(x - p3.x) + (p1.x - p3.x)*(y - p3.y)) / (float)((p2.y - p3.y)*(p1.x - p3.x) + (p3.x - p2.x)*(p1.y - p3.y));
+				float gamma = 1.0f - alpha - beta;
+				setPixel(x, y, gamma, alpha, beta);
+			}
+			ff0 = ff0 + (p1.y - p2.y);
+			ff1 = ff1 + (p2.y - p3.y);
+			ff2 = ff2 + (p3.y - p1.y);
 		}
-		f0 = f0 + (p1.x - p0.x);
-		f1 = f1 + (p2.x - p1.x);
-		f2 = f2 + (p0.x - p2.x);
+		f0 = f0 + (p2.x - p1.x);
+		f1 = f1 + (p3.x - p2.x);
+		f2 = f2 + (p1.x - p3.x);
 	}
 }
 
@@ -489,7 +493,7 @@ void testFilledRectangle() {
 }
 
 void testFillTriangle() {
-	fillTriangle(Point(50, 50), Point(100, 100), Point(60, 120));
+	fillTriangle(Point(100, 100), Point(200, 100), Point(150, 200));
 	glFlush();
 	writeToPPM("testFillTriangle.ppm");
 }
@@ -520,8 +524,8 @@ int main(int argc, char* argv[])
 	testCircle();*/
 	/*testCasteljau();*/
 	/*testFilledRectangle();*/
-	//testFillTriangle();
-	testFillPolygon();
+	testFillTriangle();
+	/*testFillPolygon();*/
 
 	/////////////////////////////////
 	glutMainLoop();
