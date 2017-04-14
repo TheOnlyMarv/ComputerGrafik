@@ -505,6 +505,116 @@ void testFillPolygon() {
 	writeToPPM("testFillPolygon.ppm");
 }
 
+
+////////////////////////////////////////////////////////////
+// WU Algorithm
+GLfloat wuR = 100, wuG = 40, wuB = 90;
+void plot(int x, int y, GLfloat c) {
+	setPixel(x, y, c, c, c);
+}
+
+float ipart(float x) {
+	return (int)x;
+}
+
+float roundi(float x) {
+	return ipart(x + 0.5);
+}
+
+float fpart(float x) {
+	if (x < 0) {
+		return 1 - (x - floor(x));
+	}
+	else
+	{
+		return x - floor(x);
+	}
+}
+
+float rfpart(float x) {
+	return 1 - fpart(x);
+}
+
+void drawWuLine(int x0, int y0, int x1, int y1) {
+	bool steep = abs(y1 - y0) > abs(x1 - x0);
+	if (steep)
+	{
+		int temp = x0;
+		x0 = y0;
+		y0 = temp;
+		temp = x1;
+		x1 = y1;
+		y1 = temp;
+	}
+	if (x0 > x1) {
+		int temp = x0;
+		x0 = x1;
+		x1 = temp;
+		temp = y0;
+		y0 = y1;
+		y1 = y0;
+	}
+
+	float dx = x1 - x0;
+	float dy = y1 - y0;
+	float gradient = dy / (float)dx;
+
+	float xend = roundi(x0);
+	float yend = y0 + gradient * (xend - x0);
+	float xgap = rfpart(x0 + 0.5);
+	float xpxl1 = xend;
+	float ypxl1 = ipart(yend);
+	if (steep) {
+		plot(ypxl1, xpxl1, rfpart(yend) * xgap);
+		plot(ypxl1 + 1, xpxl1, fpart(yend) * xgap);
+	}
+	else
+	{
+		plot(xpxl1, ypxl1, rfpart(yend) * xgap);
+		plot(xpxl1, ypxl1 + 1, fpart(yend) * xgap);
+	}
+
+	float intery = yend + gradient;
+
+	xend = roundi(x1);
+	yend = y1 + gradient * (xend - x1);
+	xgap = fpart(yend);
+	float xpxl2 = xend;
+	float ypxl2 = ipart(yend);
+	if (steep)
+	{
+		plot(ypxl2, xpxl2, rfpart(yend) * xgap);
+		plot(ypxl2 + 1, xpxl2, fpart(yend) * xgap);
+	}
+	else
+	{
+		plot(xpxl2, ypxl2, rfpart(yend) * xgap);
+		plot(xpxl2, ypxl2 + 1, fpart(yend) * xgap);
+	}
+
+	for (int x = xpxl1; x < xpxl2; x++)
+	{
+		if (steep) {
+			plot(ipart(intery), x, rfpart(intery));
+			plot(ipart(intery) + 1, x, fpart(intery));
+		}
+		else
+		{
+			plot(x, ipart(intery), rfpart(intery));
+			plot(x, ipart(intery) + 1, fpart(intery));
+		}
+		intery = intery + gradient;
+	}
+
+}
+
+
+
+void testWuLine() {
+	drawWuLine(20, 20, 60, 30);
+	drawBresenhamLineOriginal(60, 20, 100, 30);
+}
+
 ///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
@@ -524,8 +634,9 @@ int main(int argc, char* argv[])
 	testCircle();*/
 	/*testCasteljau();*/
 	/*testFilledRectangle();*/
-	testFillTriangle();
+	/*testFillTriangle();*/
 	/*testFillPolygon();*/
+	testWuLine();
 
 	/////////////////////////////////
 	glutMainLoop();
