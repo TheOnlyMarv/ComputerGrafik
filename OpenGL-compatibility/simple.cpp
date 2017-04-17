@@ -9,6 +9,9 @@
 
 #include <math.h>
 
+GLfloat x = 0.0f;
+GLfloat y = 0.0f;
+
 ///////////////////////////////////////////////////////////
 // Called to draw scene
 void RenderScene(void)
@@ -17,10 +20,10 @@ void RenderScene(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
-	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+	glRectf(x, y, x + 0.25f, y + 0.25f);
 
 	// Flush drawing commands
-    glFlush();
+    glutSwapBuffers();
 }
 
 ///////////////////////////////////////////////////////////
@@ -31,15 +34,45 @@ void SetupRC(void)
 }
 
 ///////////////////////////////////////////////////////////
+// For Changing Viewport (Window size)
+void ChangeView(GLsizei width, GLsizei height) {
+	if (width > height) {
+		glViewport(0, 0, height, height);
+	}
+	else {
+		glViewport(0, 0, width, width);
+	}
+}
+
+///////////////////////////////////////////////////////////
+// Bouncing Rectangle
+GLfloat xstep = 0.03f;
+GLfloat ystep = 0.02f;
+
+void BouncingRectangle(int value) {
+	if (x > 1 - 0.25 || x < -1 + 0.25)
+		xstep = -xstep;
+	if (y > 1 - 0.25 || y < -1 + 0.25)
+		ystep = -ystep;
+	x += xstep;
+	y += ystep;
+	glutPostRedisplay();
+	glutTimerFunc(100, BouncingRectangle, 1);
+}
+
+///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
  	glutCreateWindow("Simple");
+	glutReshapeFunc(ChangeView);
 	glutDisplayFunc(RenderScene);
-
 	SetupRC();
+
+	// For Bouncing Rectangle
+	glutTimerFunc(33, BouncingRectangle, 1);
 
 	glutMainLoop();
     
