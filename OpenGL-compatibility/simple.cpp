@@ -13,15 +13,24 @@ GLfloat x = 0.0f;
 GLfloat y = 0.0f;
 
 ///////////////////////////////////////////////////////////
+// Draws the border of the Viewingport
+void drawViewPortBorder() {
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glRectf(-1.0, 1.0, 1.0, -1.0);
+}
+
+///////////////////////////////////////////////////////////
 // Called to draw scene
 void RenderScene(void)
 {
 	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	drawViewPortBorder();
+
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glRectf(x, y, x + 0.25f, y + 0.25f);
-
+	
 	// Flush drawing commands
     glutSwapBuffers();
 }
@@ -46,18 +55,18 @@ void ChangeView(GLsizei width, GLsizei height) {
 
 ///////////////////////////////////////////////////////////
 // Bouncing Rectangle
-GLfloat xstep = 0.03f;
-GLfloat ystep = 0.02f;
+GLfloat xstep = 0.02f;
+GLfloat ystep = 0.03f;
 
 void BouncingRectangle(int value) {
-	if (x > 1 - 0.25 || x < -1 + 0.25)
+	if (x > 1 - 0.25 || x < -1)
 		xstep = -xstep;
-	if (y > 1 - 0.25 || y < -1 + 0.25)
+	if (y > 1 - 0.25 || y < -1 )
 		ystep = -ystep;
 	x += xstep;
 	y += ystep;
 	glutPostRedisplay();
-	glutTimerFunc(100, BouncingRectangle, 1);
+	glutTimerFunc(33, BouncingRectangle, 1);
 }
 
 ///////////////////////////////////////////////////////////
