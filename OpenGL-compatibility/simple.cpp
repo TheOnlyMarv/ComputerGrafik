@@ -11,6 +11,7 @@
 
 GLfloat x = 0.0f;
 GLfloat y = 0.0f;
+GLfloat rotateAngle = 0.0f;
 
 ///////////////////////////////////////////////////////////
 // Draws the border of the Viewingport
@@ -25,12 +26,18 @@ void RenderScene(void)
 {
 	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT);
+	//drawViewPortBorder();
+	//glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-	drawViewPortBorder();
-
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glRotatef(rotateAngle, 0, 0, 1);
+	glTranslatef(-x, -y, 0);
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glRectf(x, y, x + 0.25f, y + 0.25f);
-	
+	glPopMatrix();
+
 	// Flush drawing commands
     glutSwapBuffers();
 }
@@ -57,14 +64,19 @@ void ChangeView(GLsizei width, GLsizei height) {
 // Bouncing Rectangle
 GLfloat xstep = 0.02f;
 GLfloat ystep = 0.03f;
+GLfloat rotateStep = 3.0f;
 
 void BouncingRectangle(int value) {
-	if (x > 1 - 0.25 || x < -1)
+	if (x > 1 - 0.25 || x < -1 + 0.25)
 		xstep = -xstep;
-	if (y > 1 - 0.25 || y < -1 )
+	if (y > 1 - 0.25 || y < -1 + 0.25)
 		ystep = -ystep;
+	if (rotateAngle > 360)
+		rotateAngle = 0;
 	x += xstep;
 	y += ystep;
+	rotateAngle += rotateStep;
+	//glTranslatef(1, 1, 1);
 	glutPostRedisplay();
 	glutTimerFunc(33, BouncingRectangle, 1);
 }
