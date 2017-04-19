@@ -9,8 +9,8 @@
 
 #include <math.h>
 
-GLfloat x = 0.0f;
-GLfloat y = 0.0f;
+GLfloat rectangleX = 0.0f;
+GLfloat rectangleY = 0.0f;
 GLfloat rotateAngle = 0.0f;
 
 ///////////////////////////////////////////////////////////
@@ -27,16 +27,12 @@ void RenderScene(void)
 	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT);
 	//drawViewPortBorder();
-	//glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glPushMatrix();
-	glTranslatef(x, y, 0);
+	glTranslatef(rectangleX, rectangleY, 0);
 	glRotatef(rotateAngle, 0, 0, 1);
-	glTranslatef(-x, -y, 0);
 	glColor3f(1.0f, 0.0f, 0.0f);
-	glRectf(x, y, x + 0.25f, y + 0.25f);
-	glPopMatrix();
+	glRectf(-0.25f, 0.25f, 0.25f, -0.25f);
 
 	// Flush drawing commands
     glutSwapBuffers();
@@ -67,16 +63,16 @@ GLfloat ystep = 0.03f;
 GLfloat rotateStep = 3.0f;
 
 void BouncingRectangle(int value) {
-	if (x > 1 - 0.25 || x < -1 + 0.25)
+	if (rectangleX > 1 - 0.25 || rectangleX < -1 + 0.25)
 		xstep = -xstep;
-	if (y > 1 - 0.25 || y < -1 + 0.25)
+	if (rectangleY > 1 - 0.25 || rectangleY < -1 + 0.25)
 		ystep = -ystep;
-	if (rotateAngle > 360)
-		rotateAngle = 0;
-	x += xstep;
-	y += ystep;
+	
+	rectangleX += xstep;
+	rectangleY += ystep;
 	rotateAngle += rotateStep;
-	//glTranslatef(1, 1, 1);
+	rotateAngle = (rotateAngle > 360 ? 0 : (rotateAngle < 0 ? 360 : rotateAngle));
+
 	glutPostRedisplay();
 	glutTimerFunc(33, BouncingRectangle, 1);
 }
