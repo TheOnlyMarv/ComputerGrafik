@@ -6,6 +6,7 @@
 #include <windows.h>		// Must have for Windows platform builds
 #include "gl/glew.h"
 #include "glut.h"			// Glut (Free-Glut on Windows)
+#include "UtahTeapot.h"
 
 #include <math.h>
 
@@ -85,7 +86,8 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
  	glutCreateWindow("Simple");
 	glutReshapeFunc(ChangeView);
-	glutDisplayFunc(RenderScene);
+	glutDisplayFunc(RenderSceneTeapot);
+	glutKeyboardFunc(TeapotKeyboard);
 	SetupRC();
 
 	// For Bouncing Rectangle

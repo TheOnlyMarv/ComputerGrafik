@@ -103,6 +103,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="simple.cpp" />
+    <ClCompile Include="UtahTeapot.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="UtahTeapot.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
