@@ -85,7 +85,8 @@ int main(int argc, char* argv[])
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
  	glutCreateWindow("Simple");
-	glutReshapeFunc(ChangeView);
+	//glutReshapeFunc(ChangeView);
+	glutReshapeFunc(TeapotChangeView);
 	glutDisplayFunc(RenderSceneTeapot);
 	glutKeyboardFunc(TeapotKeyboard);
 	SetupRC();
