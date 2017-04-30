@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <iostream>
+#include <math.h>
 #include "WavefrontModel.h"
 
 std::vector<Vertex> vertices;
@@ -20,8 +21,8 @@ float transXModel = 0.0f;
 float transYModel = 0.0f;
 float angleYModel = 0.0f;
 float angleXModel = 0.0f;
-float zoomZModel = -1.0f;
-
+float zoomZModel = std::numeric_limits<float>::max();
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
 
 bool loadOBJ(const char * path, std::vector<Vertex>& out_vertices)
 {
@@ -45,6 +46,7 @@ bool loadOBJ(const char * path, std::vector<Vertex>& out_vertices)
 		if (strcmp(lineHeader, "v") == 0) {
 			Vertex vertex;
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			zoomZModel = min(zoomZModel, vertex.z);
 			temp_vertices.push_back(vertex);
 
 		}
@@ -101,6 +103,7 @@ bool loadOBJ(const char * path, std::vector<Vertex>& out_vertices)
 	}
 	vertices = out_vertices;
 	std::cout << "Loading complete" << std::endl;
+
 }
 
 GLfloat fAspectModel;

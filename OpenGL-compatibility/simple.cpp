@@ -104,7 +104,7 @@ void SetupWavefrontModel() {
 	//wavefrontModelInit("E:\\Datasets\\cube.obj");
 	//glutDisplayFunc(wavefrontModelDisplay);
 	std::vector<Vertex> vertices;
-	loadOBJ("E:\\Datasets\\dragon\\dragon.obj", vertices);
+	loadOBJ("E:\\Datasets\\bunny\\bunny.obj", vertices);
 	glutReshapeFunc(ModelChangeView);
 	glutDisplayFunc(RenderSceneModel);
 	glutKeyboardFunc(ModelKeyboard);
