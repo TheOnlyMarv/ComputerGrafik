@@ -7,6 +7,9 @@
 #include "gl/glew.h"
 #include "glut.h"			// Glut (Free-Glut on Windows)
 #include "UtahTeapot.h"
+#include "Robot.h"
+#include "WavefrontModel.h"
+#include <iostream>
 
 #include <math.h>
 
@@ -79,6 +82,36 @@ void BouncingRectangle(int value) {
 }
 
 ///////////////////////////////////////////////////////////
+// Setup for the UtahTeapot
+void SetupTeapot() {
+	glutReshapeFunc(TeapotChangeView);
+	glutDisplayFunc(RenderSceneTeapot);
+	glutKeyboardFunc(TeapotKeyboard);
+}
+
+///////////////////////////////////////////////////////////
+// Setup for the Robot
+void SetupRobot() {
+	glutReshapeFunc(RoboterChangeView);
+	glutDisplayFunc(RoboterRenderScene);
+	glutKeyboardFunc(TeapotKeyboard);
+}
+
+///////////////////////////////////////////////////////////
+// Setup for the WavefrontModel
+void SetupWavefrontModel() {
+	//glutReshapeFunc(wavefrontModelChangeView);
+	//wavefrontModelInit("E:\\Datasets\\cube.obj");
+	//glutDisplayFunc(wavefrontModelDisplay);
+	std::vector<Vertex> vertices;
+	loadOBJ("E:\\Datasets\\dragon\\dragon.obj", vertices);
+	glutReshapeFunc(ModelChangeView);
+	glutDisplayFunc(RenderSceneModel);
+	glutKeyboardFunc(ModelKeyboard);
+}
+
+
+///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
 {
@@ -86,9 +119,9 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
  	glutCreateWindow("Simple");
 	//glutReshapeFunc(ChangeView);
-	glutReshapeFunc(TeapotChangeView);
-	glutDisplayFunc(RenderSceneTeapot);
-	glutKeyboardFunc(TeapotKeyboard);
+	//SetupTeapot();
+	//SetupRobot();
+	SetupWavefrontModel();
 	SetupRC();
 
 	// For Bouncing Rectangle

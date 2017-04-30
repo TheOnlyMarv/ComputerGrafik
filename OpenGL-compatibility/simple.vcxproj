@@ -88,7 +88,7 @@
     <Link>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)simple.exe</OutputFile>
-      <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib;C:\Users\Marvin\Source\Repos\ComputerGrafik\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -102,11 +102,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Robot.cpp" />
     <ClCompile Include="simple.cpp" />
     <ClCompile Include="UtahTeapot.cpp" />
+    <ClCompile Include="WavefrontModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Robot.h" />
     <ClInclude Include="UtahTeapot.h" />
+    <ClInclude Include="WavefrontModel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
