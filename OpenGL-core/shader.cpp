@@ -153,12 +153,12 @@ void SetupRC(void)
 void keyPress(unsigned char k, int x, int y)
 {
 	switch(k) {
-		case 'x': rot.x +=0.1; break;
-		case 'y': rot.y +=0.1; break;
-		case 'z': rot.z +=0.1; break;
-		case 'X': rot.x -=0.1; break;
-		case 'Y': rot.y -=0.1; break;
-		case 'Z': rot.z -=0.1; break;
+		case 'x': rot.x +=0.1f; break;
+		case 'y': rot.y +=0.1f; break;
+		case 'z': rot.z +=0.1f; break;
+		case 'X': rot.x -=0.1f; break;
+		case 'Y': rot.y -=0.1f; break;
+		case 'Z': rot.z -=0.1f; break;
 		case '+': trans.z +=0.1f; break;
 		case '-': trans.z -=0.1f; break;
 		case 'q': exit(1);
