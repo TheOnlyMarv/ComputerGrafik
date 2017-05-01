@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include "gl/glew.h"
 #include "glut.h"			// Glut (Free-Glut on Windows)
+#include "glm\glm.hpp";
+#include "glm\gtc\matrix_transform.hpp"
+#include "glm\gtc\type_ptr.hpp"
 
 #include <math.h>
 #include <string>
@@ -16,13 +19,18 @@ using namespace std;
 
 GLfloat rotx = 0;
 GLfloat roty = 0;
-GLfloat rotz = 0;
-GLfloat tz = 0;
+
+glm::vec3 rot(0.0f);
+glm::vec3 trans(1.0f);
 
 const GLfloat vertexPositions[] = {
-    0.75f, 0.75f, 0.0f, 1.0f,
-    0.75f, -0.75f, 0.0f, 1.0f,
-    -0.75f, -0.75f, 0.0f, 1.0f,
+	0.75f, 0.75f, 0.0f, 1.0f,
+	0.75f, -0.75f, 0.0f, 1.0f,
+	-0.75f, -0.75f, 0.0f, 1.0f,
+
+	1.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f, 1.0f,
 };
 
 GLuint positionBufferObject = 0;
@@ -31,16 +39,23 @@ GLuint theProgram = 0;
 const char vs1[] = R"EOF(
 #version 330
 layout(location = 0) in vec4 position;
+layout(location = 1) in vec4 color;
+
+uniform mat4 transform;
+smooth out vec4 myColor;
 void main() {
-    gl_Position = position;
+    gl_Position = transform * position;
+	myColor = color;
 }
 )EOF";
 
 const char fs1[] = R"EOF(
 #version 330
+smooth in vec4 myColor;
 out vec4 outColor;
 void main(){
-   outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+   //outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+	outColor = myColor;
 }
 )EOF";
 
@@ -92,9 +107,22 @@ void RenderScene(void)
 
 	glUseProgram(theProgram);
 
+	glm::mat4 rx = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1, 0, 0));
+	glm::mat4 ry = glm::rotate(glm::mat4(1.0f), rot.y, glm::vec3(0, 1, 0));
+	glm::mat4 rz = glm::rotate(glm::mat4(1.0f), rot.z, glm::vec3(0, 0, 1));
+	glm::mat4 t = glm::scale(glm::mat4(1.0f), glm::vec3(trans.z)); //glm::translate(glm::mat4(1.0f), glm::vec3(trans.z));
+	
+	glm::mat4 m = rx*ry*rz*t;
+	glUniformMatrix4fv(
+		glGetUniformLocation(theProgram, "transform"),
+		1, GL_FALSE, glm::value_ptr(m));
+
+
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(3 * 4 * 4));
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glDisableVertexAttribArray(0);
@@ -125,14 +153,14 @@ void SetupRC(void)
 void keyPress(unsigned char k, int x, int y)
 {
 	switch(k) {
-		case 'x': rotx +=10; break;
-		case 'y': roty +=10; break;
-		case 'z': rotz +=10; break;
-		case 'X': rotx -=10; break;
-		case 'Y': roty -=10; break;
-		case 'Z': rotz -=10; break;
-		case '+': tz +=0.1f; break;
-		case '-': tz -=0.1f; break;
+		case 'x': rot.x +=0.1; break;
+		case 'y': rot.y +=0.1; break;
+		case 'z': rot.z +=0.1; break;
+		case 'X': rot.x -=0.1; break;
+		case 'Y': rot.y -=0.1; break;
+		case 'Z': rot.z -=0.1; break;
+		case '+': trans.z +=0.1f; break;
+		case '-': trans.z -=0.1f; break;
 		case 'q': exit(1);
 	}
 	glutPostRedisplay();
