@@ -10,6 +10,9 @@
 #include "glm\glm.hpp";
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
+#include <iostream>
+
+#include "ObjectLoader.h"
 
 #include <math.h>
 #include <string>
@@ -21,17 +24,21 @@ GLfloat rotx = 0;
 GLfloat roty = 0;
 
 glm::vec3 rot(0.0f);
-glm::vec3 trans(1.0f);
+glm::vec3 trans(0.0f);
 
-const GLfloat vertexPositions[] = {
-	0.75f, 0.75f, 0.0f, 1.0f,
-	0.75f, -0.75f, 0.0f, 1.0f,
-	-0.75f, -0.75f, 0.0f, 1.0f,
+long vertexArraySize;
 
-	1.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f, 1.0f,
-};
+//const GLfloat vertexPositions[] = {
+//	0.75f, 0.75f, 0.0f, 1.0f,
+//	0.75f, -0.75f, 0.0f, 1.0f,
+//	-0.75f, -0.75f, 0.0f, 1.0f,
+//
+//	1.0f, 0.0f, 0.0f, 1.0f,
+//	0.0f, 1.0f, 0.0f, 1.0f,
+//	0.0f, 0.0f, 1.0f, 1.0f,
+//};
+
+const GLfloat* vertexPositions;
 
 GLuint positionBufferObject = 0;
 GLuint theProgram = 0;
@@ -39,23 +46,23 @@ GLuint theProgram = 0;
 const char vs1[] = R"EOF(
 #version 330
 layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 color;
+//layout(location = 1) in vec4 color;
 
 uniform mat4 transform;
 smooth out vec4 myColor;
 void main() {
     gl_Position = transform * position;
-	myColor = color;
+	//myColor = color;
 }
 )EOF";
 
 const char fs1[] = R"EOF(
 #version 330
-smooth in vec4 myColor;
+//smooth in vec4 myColor;
 out vec4 outColor;
 void main(){
-   //outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-	outColor = myColor;
+   outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+	//outColor = myColor;
 }
 )EOF";
 
@@ -110,9 +117,10 @@ void RenderScene(void)
 	glm::mat4 rx = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1, 0, 0));
 	glm::mat4 ry = glm::rotate(glm::mat4(1.0f), rot.y, glm::vec3(0, 1, 0));
 	glm::mat4 rz = glm::rotate(glm::mat4(1.0f), rot.z, glm::vec3(0, 0, 1));
-	glm::mat4 t = glm::scale(glm::mat4(1.0f), glm::vec3(trans.z)); //glm::translate(glm::mat4(1.0f), glm::vec3(trans.z));
+	glm::mat4 s = glm::scale(glm::mat4(1.0f), glm::vec3(trans.z + 1.0f)); //glm::translate(glm::mat4(1.0f), glm::vec3(trans.z));
+	glm::mat4 t = glm::translate(glm::mat4(1.0f), glm::vec3(trans.x, trans.y, 0.0f));
 	
-	glm::mat4 m = rx*ry*rz*t;
+	glm::mat4 m = rx*ry*rz*s*t;
 	glUniformMatrix4fv(
 		glGetUniformLocation(theProgram, "transform"),
 		1, GL_FALSE, glm::value_ptr(m));
@@ -120,10 +128,11 @@ void RenderScene(void)
 
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
 	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+	//glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(3 * 4 * 4));
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(3 * 4 * 4));
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexArraySize/4);
 
 	glDisableVertexAttribArray(0);
 	glUseProgram(0);
@@ -140,7 +149,7 @@ void SetupRC(void)
 	// setup vertex buffer
     glGenBuffers(1, &positionBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) * vertexArraySize, vertexPositions, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// make shaders
@@ -148,6 +157,8 @@ void SetupRC(void)
 	shaders.push_back(CreateShader(GL_VERTEX_SHADER, vs1));
 	shaders.push_back(CreateShader(GL_FRAGMENT_SHADER, fs1));
 	theProgram = CreateProgram(shaders);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void keyPress(unsigned char k, int x, int y)
@@ -161,6 +172,10 @@ void keyPress(unsigned char k, int x, int y)
 		case 'Z': rot.z -=0.1f; break;
 		case '+': trans.z +=0.1f; break;
 		case '-': trans.z -=0.1f; break;
+		case 'w': trans.y += 0.1f;break;
+		case 's': trans.y -= 0.1f;break;
+		case 'd': trans.x += 0.1f;break;
+		case 'a': trans.x -= 0.1f;break;
 		case 'q': exit(1);
 	}
 	glutPostRedisplay();
@@ -172,9 +187,19 @@ void changeSize(int w, int h)
 }
 
 ///////////////////////////////////////////////////////////
+// Load Model
+void loadModel(void) {
+	vertexPositions = loadOBJ("E:\\Datasets\\bunny\\bunny.obj", vertexArraySize);
+	cout << vertexArraySize << endl;
+}
+
+
+///////////////////////////////////////////////////////////
 // Main program entry point
 int main(int argc, char* argv[])
 {
+	loadModel();
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE  | GLUT_RGBA | GLUT_DEPTH );
 
