@@ -18,10 +18,11 @@ public:
 };
 
 
-GLfloat* loadOBJ(const char * path, long & n)
+GLfloat* loadOBJ(const char * path, long & n, bool & includeNormals)
 {
 	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
 	std::vector< Vertex > temp_vertices;
+	std::vector< Vertex > temp_normals;
 
 	FILE * file = fopen(path, "r");
 	if (file == NULL) {
@@ -41,7 +42,12 @@ GLfloat* loadOBJ(const char * path, long & n)
 			Vertex vertex;
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 			temp_vertices.push_back(vertex);
-
+		}
+		else if (strcmp(lineHeader, "vn") == 0)
+		{
+			Vertex normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			temp_normals.push_back(normal);
 		}
 		else if (strcmp(lineHeader, "f") == 0) {
 			std::string vertex1, vertex2, vertex3;
@@ -72,6 +78,7 @@ GLfloat* loadOBJ(const char * path, long & n)
 						printf("File can't be read by our simple parser : ( Try exporting with other options\n");
 						return nullptr;
 					}
+					includeNormals = true;
 					vertexIndices.push_back(vertexIndex[0]);
 					vertexIndices.push_back(vertexIndex[1]);
 					vertexIndices.push_back(vertexIndex[2]);
@@ -89,8 +96,9 @@ GLfloat* loadOBJ(const char * path, long & n)
 		}
 	}
 
-	long vn = vertexIndices.size() * 4;
-	GLfloat* out_vertices = new GLfloat[vn]();
+	long numberVertices = vertexIndices.size() * 4;
+	long numberNormals = includeNormals ? normalIndices.size() * 4 : 0;
+	GLfloat* out_vertices = new GLfloat[numberVertices + numberNormals]();
 	// For each vertex of each triangle
 	long j = 0;
 	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
@@ -101,6 +109,17 @@ GLfloat* loadOBJ(const char * path, long & n)
 		out_vertices[j++] = vertex.z;
 		out_vertices[j++] = vertex.w;
 	}
+
+	for (unsigned int i = 0; i < normalIndices.size(); i++)
+	{
+		unsigned int normalIndex = normalIndices[i];
+		Vertex normal = temp_normals[normalIndex - 1];
+		out_vertices[j++] = normal.x;
+		out_vertices[j++] = normal.y;
+		out_vertices[j++] = normal.z;
+		out_vertices[j++] = normal.w;
+	}
+
 	std::cout << "Loading complete" << std::endl;
 	n = j;
 	return out_vertices;
