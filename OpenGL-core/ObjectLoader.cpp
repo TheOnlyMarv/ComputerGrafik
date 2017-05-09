@@ -5,7 +5,8 @@
 
 #include "gl/glew.h"
 #include "glut.h"			// Glut (Free-Glut on Windows)
-#include <vector>
+#include "glm\common.hpp"
+#include "glm\gtx\normal.hpp"
 
 #include <iostream>
 #include <math.h>
@@ -18,7 +19,7 @@ public:
 };
 
 
-GLfloat* loadOBJ(const char * path, long & n, bool & includeNormals)
+void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 {
 	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
 	std::vector< Vertex > temp_vertices;
@@ -27,7 +28,7 @@ GLfloat* loadOBJ(const char * path, long & n, bool & includeNormals)
 	FILE * file = fopen(path, "r");
 	if (file == NULL) {
 		printf("Impossible to open the file !\n");
-		return nullptr;
+		return;
 	}
 
 	std::cout << "Loading " << path << std::endl;
@@ -76,9 +77,8 @@ GLfloat* loadOBJ(const char * path, long & n, bool & includeNormals)
 					//std::cout << matches << std::endl;
 					if (matches != 7) {
 						printf("File can't be read by our simple parser : ( Try exporting with other options\n");
-						return nullptr;
+						return;
 					}
-					includeNormals = true;
 					vertexIndices.push_back(vertexIndex[0]);
 					vertexIndices.push_back(vertexIndex[1]);
 					vertexIndices.push_back(vertexIndex[2]);
@@ -96,31 +96,71 @@ GLfloat* loadOBJ(const char * path, long & n, bool & includeNormals)
 		}
 	}
 
-	long numberVertices = vertexIndices.size() * 4;
-	long numberNormals = includeNormals ? normalIndices.size() * 4 : 0;
-	GLfloat* out_vertices = new GLfloat[numberVertices + numberNormals]();
-	// For each vertex of each triangle
-	long j = 0;
-	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
-		unsigned int vertexIndex = vertexIndices[i];
-		Vertex vertex = temp_vertices[vertexIndex - 1];
-		out_vertices[j++] = vertex.x;
-		out_vertices[j++] = vertex.y;
-		out_vertices[j++] = vertex.z;
-		out_vertices[j++] = vertex.w;
-	}
 
-	for (unsigned int i = 0; i < normalIndices.size(); i++)
-	{
-		unsigned int normalIndex = normalIndices[i];
-		Vertex normal = temp_normals[normalIndex - 1];
-		out_vertices[j++] = normal.x;
-		out_vertices[j++] = normal.y;
-		out_vertices[j++] = normal.z;
-		out_vertices[j++] = normal.w;
-	}
+	// For each vertex of each triangle
+		if (normalIndices.size() == vertexIndices.size())
+		{
+			long j = 0;
+			for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+				unsigned int vertexIndex = vertexIndices[i];
+				Vertex vertex = temp_vertices[vertexIndex - 1];
+				out_vertices.push_back(vertex.x);
+				out_vertices.push_back(vertex.y);
+				out_vertices.push_back(vertex.z);
+				out_vertices.push_back(vertex.w);
+
+				unsigned int normalIndex = normalIndices[i];
+				Vertex normal = temp_normals[normalIndex - 1];
+				out_vertices.push_back(normal.x);
+				out_vertices.push_back(normal.y);
+				out_vertices.push_back(normal.z);
+				out_vertices.push_back(normal.w);
+			}
+		}
+		else
+		{
+			for (unsigned int i = 0; i < vertexIndices.size(); i += 3)
+			{
+				Vertex v1 = temp_vertices[vertexIndices[i] - 1];
+				Vertex v2 = temp_vertices[vertexIndices[i + 1] - 1];
+				Vertex v3 = temp_vertices[vertexIndices[i + 2] - 1];
+				glm::vec3 normal = glm::triangleNormal(
+					glm::vec3(v1.x, v1.y, v1.z),
+					glm::vec3(v2.x, v2.y, v2.z),
+					glm::vec3(v3.x, v3.y, v3.z)
+				);
+
+				out_vertices.push_back(v1.x);
+				out_vertices.push_back(v1.y);
+				out_vertices.push_back(v1.z);
+				out_vertices.push_back(v1.w);
+
+				out_vertices.push_back(normal.x);
+				out_vertices.push_back(normal.y);
+				out_vertices.push_back(normal.z);
+				out_vertices.push_back(1.0f);
+
+				out_vertices.push_back(v2.x);
+				out_vertices.push_back(v2.y);
+				out_vertices.push_back(v2.z);
+				out_vertices.push_back(v2.w);
+
+				out_vertices.push_back(normal.x);
+				out_vertices.push_back(normal.y);
+				out_vertices.push_back(normal.z);
+				out_vertices.push_back(1.0f);
+
+				out_vertices.push_back(v3.x);
+				out_vertices.push_back(v3.y);
+				out_vertices.push_back(v3.z);
+				out_vertices.push_back(v3.w);
+
+				out_vertices.push_back(normal.x);
+				out_vertices.push_back(normal.y);
+				out_vertices.push_back(normal.z);
+				out_vertices.push_back(1.0f);
+			}
+		}
 
 	std::cout << "Loading complete" << std::endl;
-	n = j;
-	return out_vertices;
 }

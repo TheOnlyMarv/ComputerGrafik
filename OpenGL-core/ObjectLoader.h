@@ -1,3 +1,4 @@
 #pragma once
+#include <vector>
 
-GLfloat * loadOBJ(const char * path, long & n, bool & includeNormals);
+void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices);

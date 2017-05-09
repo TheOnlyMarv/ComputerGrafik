@@ -25,21 +25,16 @@ GLfloat roty = 0;
 
 glm::vec3 rot(0.0f);
 glm::vec3 trans(0.0f);
-
-long vertexArraySize;
-bool includeNormals;
+glm::vec3 scale(1.0f);
 
 //const GLfloat vertexPositions[] = {
-//	0.75f, 0.75f, 0.0f, 1.0f,
-//	0.75f, -0.75f, 0.0f, 1.0f,
-//	-0.75f, -0.75f, 0.0f, 1.0f,
+//	0.75f, 0.75f, 0.0f, 1.0f,        1.0f, 0.0f, 0.0f, 1.0f,
+//	0.75f, -0.75f, 0.0f, 1.0f,	     0.0f, 1.0f, 0.0f, 1.0f,
+//	-0.75f, -0.75f, 0.0f, 1.0f,	     0.0f, 0.0f, 1.0f, 1.0f,
 //
-//	1.0f, 0.0f, 0.0f, 1.0f,
-//	0.0f, 1.0f, 0.0f, 1.0f,
-//	0.0f, 0.0f, 1.0f, 1.0f,
 //};
 
-const GLfloat* vertexPositions;
+std::vector<float> vertexData;
 
 GLuint positionBufferObject = 0;
 GLuint theProgram = 0;
@@ -67,10 +62,15 @@ const char vs2[] = R"EOF(
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec4 color;
 
-uniform mat4 transform;
+layout(std140) uniform TBlock{
+	mat4 transform;
+	mat4 look;
+	mat4 proj;
+};
+
 smooth out vec4 myColor;
 void main() {
-    gl_Position = transform * position;
+    gl_Position = proj * look * transform * position;
 	myColor = color;
 }
 )EOF";
@@ -80,8 +80,8 @@ const char fs2[] = R"EOF(
 smooth in vec4 myColor;
 out vec4 outColor;
 void main(){
-   outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-	outColor = abs(myColor);
+   //outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
+	outColor = vec4(abs(myColor.x), abs(myColor.y), abs(myColor.z), 1.0f);
 }
 )EOF";
 
@@ -133,34 +133,51 @@ void RenderScene(void)
 
 	glUseProgram(theProgram);
 
-	glm::mat4 rx = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1, 0, 0));
-	glm::mat4 ry = glm::rotate(glm::mat4(1.0f), rot.y, glm::vec3(0, 1, 0));
-	glm::mat4 rz = glm::rotate(glm::mat4(1.0f), rot.z, glm::vec3(0, 0, 1));
-	glm::mat4 s = glm::scale(glm::mat4(1.0f), glm::vec3(trans.z + 1.0f)); //glm::translate(glm::mat4(1.0f), glm::vec3(trans.z));
-	glm::mat4 t = glm::translate(glm::mat4(1.0f), glm::vec3(trans.x, trans.y, 0.0f));
+	struct {
+		glm::mat4 transform;
+		glm::mat4 look;
+		glm::mat4 proj;
+	} tblock;
 
-	glm::mat4 m = rx*ry*rz*s*t;
-	glUniformMatrix4fv(
-		glGetUniformLocation(theProgram, "transform"),
-		1, GL_FALSE, glm::value_ptr(m));
+	tblock.transform = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1, 0, 0));
+	tblock.transform = glm::rotate(tblock.transform, rot.y, glm::vec3(0, 1, 0));
+	tblock.transform = glm::rotate(tblock.transform, rot.z, glm::vec3(0, 0, 1));
+	tblock.transform = glm::translate(tblock.transform, trans);
+	
+	
+	tblock.look = glm::lookAt(glm::vec3(0, 0, -3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
+	tblock.proj = glm::perspective(60.0f, 1.0f, 0.1f, 20.0f);
+	tblock.proj = glm::scale(tblock.proj, scale);
+
+	GLuint blockIndex = glGetUniformBlockIndex(theProgram, "TBlock");
+	GLint blockSize;
+	glGetActiveUniformBlockiv(theProgram, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+	GLubyte*blockBuffer = (GLubyte*)malloc(blockSize);
+	const GLchar* names[] = { "transform", "look", "proj" }; 
+	GLuint indices[3];
+	glGetUniformIndices(theProgram, 3, names, indices);
+	GLint offset[3];
+	glGetActiveUniformsiv(theProgram, 3, indices, GL_UNIFORM_OFFSET, offset);
+	memcpy(blockBuffer + offset[0], glm::value_ptr(tblock.transform), sizeof(tblock.transform));
+	memcpy(blockBuffer + offset[1], glm::value_ptr(tblock.look), sizeof(tblock.look));
+	memcpy(blockBuffer + offset[2], glm::value_ptr(tblock.proj), sizeof(tblock.proj));
+	GLuint uBuf;
+	glGenBuffers(1, &uBuf);
+	glBindBuffer(GL_UNIFORM_BUFFER, uBuf);
+	glBufferData(GL_UNIFORM_BUFFER, blockSize, blockBuffer, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uBuf);
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const GLvoid*)(sizeof(GLfloat) * 4));
 
-	if (includeNormals)
-	{
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)((vertexArraySize / 2 / 4) * 4 * 4));
-		glDrawArrays(GL_TRIANGLES, 0, vertexArraySize / 4 / 2);
-	}
-	else {
-		glDrawArrays(GL_TRIANGLES, 0, vertexArraySize / 4);
-	}
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() /4 /2);
 
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 	glUseProgram(0);
 
 	glutSwapBuffers();
@@ -175,16 +192,16 @@ void SetupRC(void)
 	// setup vertex buffer
 	glGenBuffers(1, &positionBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions) * vertexArraySize, vertexPositions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexData.size(), &vertexData[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// make shaders
 	vector<GLuint> shaders;
-	shaders.push_back(CreateShader(GL_VERTEX_SHADER, includeNormals ? vs2 : vs1));
-	shaders.push_back(CreateShader(GL_FRAGMENT_SHADER, includeNormals ? fs2 : fs1));
+	shaders.push_back(CreateShader(GL_VERTEX_SHADER, /*includeNormals ? vs2 :*/ vs2));
+	shaders.push_back(CreateShader(GL_FRAGMENT_SHADER, /*includeNormals ? fs2 :*/ fs2));
 	theProgram = CreateProgram(shaders);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void keyPress(unsigned char k, int x, int y)
@@ -196,8 +213,8 @@ void keyPress(unsigned char k, int x, int y)
 	case 'X': rot.x -= 0.1f; break;
 	case 'Y': rot.y -= 0.1f; break;
 	case 'Z': rot.z -= 0.1f; break;
-	case '+': trans.z += 0.1f; break;
-	case '-': trans.z -= 0.1f; break;
+	case '+': scale.z += 0.1f; break;
+	case '-': scale.z -= 0.1f; break;
 	case 'w': trans.y += 0.1f;break;
 	case 's': trans.y -= 0.1f;break;
 	case 'd': trans.x += 0.1f;break;
@@ -215,8 +232,7 @@ void changeSize(int w, int h)
 ///////////////////////////////////////////////////////////
 // Load Model
 void loadModel(void) {
-	vertexPositions = loadOBJ("E:\\Datasets\\sphere.obj", vertexArraySize, includeNormals);
-	cout << vertexArraySize << endl;
+	loadOBJ("E:\\Datasets\\sphere.obj", vertexData);
 }
 
 
