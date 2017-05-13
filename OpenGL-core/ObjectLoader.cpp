@@ -12,18 +12,13 @@
 #include <math.h>
 #include "ObjectLoader.h"
 
-class Vertex
-{
-public:
-	float x, y, z, w = 1.0f;
-};
-
+using namespace glm;
 
 void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 {
 	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-	std::vector< Vertex > temp_vertices;
-	std::vector< Vertex > temp_normals;
+	std::vector< vec4 > temp_vertices;
+	std::vector< vec3 > temp_normals;
 
 	FILE * file = fopen(path, "r");
 	if (file == NULL) {
@@ -40,18 +35,17 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
 		if (strcmp(lineHeader, "v") == 0) {
-			Vertex vertex;
+			vec4 vertex = vec4(1.0f);
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 			temp_vertices.push_back(vertex);
 		}
 		else if (strcmp(lineHeader, "vn") == 0)
 		{
-			Vertex normal;
+			vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 			temp_normals.push_back(normal);
 		}
 		else if (strcmp(lineHeader, "f") == 0) {
-			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 			int matches = fscanf(file, "%d %d %d", &vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);
 			//std::cout << matches << std::endl;
@@ -103,14 +97,14 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 			long j = 0;
 			for (unsigned int i = 0; i < vertexIndices.size(); i++) {
 				unsigned int vertexIndex = vertexIndices[i];
-				Vertex vertex = temp_vertices[vertexIndex - 1];
+				vec4 vertex = temp_vertices[vertexIndex - 1];
 				out_vertices.push_back(vertex.x);
 				out_vertices.push_back(vertex.y);
 				out_vertices.push_back(vertex.z);
 				out_vertices.push_back(vertex.w);
 
 				unsigned int normalIndex = normalIndices[i];
-				Vertex normal = temp_normals[normalIndex - 1];
+				vec3 normal = temp_normals[normalIndex - 1];
 				out_vertices.push_back(normal.x);
 				out_vertices.push_back(normal.y);
 				out_vertices.push_back(normal.z);
@@ -120,13 +114,13 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 		{
 			for (unsigned int i = 0; i < vertexIndices.size(); i += 3)
 			{
-				Vertex v1 = temp_vertices[vertexIndices[i] - 1];
-				Vertex v2 = temp_vertices[vertexIndices[i + 1] - 1];
-				Vertex v3 = temp_vertices[vertexIndices[i + 2] - 1];
-				glm::vec3 normal = glm::triangleNormal(
-					glm::vec3(v1.x, v1.y, v1.z),
-					glm::vec3(v2.x, v2.y, v2.z),
-					glm::vec3(v3.x, v3.y, v3.z)
+				vec4 v1 = temp_vertices[vertexIndices[i] - 1];
+				vec4 v2 = temp_vertices[vertexIndices[i + 1] - 1];
+				vec4 v3 = temp_vertices[vertexIndices[i + 2] - 1];
+				vec3 normal = glm::triangleNormal(
+					vec3(v1),
+					vec3(v2),
+					vec3(v3)
 				);
 
 				out_vertices.push_back(v1.x);
