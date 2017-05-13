@@ -114,7 +114,6 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 				out_vertices.push_back(normal.x);
 				out_vertices.push_back(normal.y);
 				out_vertices.push_back(normal.z);
-				out_vertices.push_back(normal.w);
 			}
 		}
 		else
@@ -138,7 +137,6 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 				out_vertices.push_back(normal.x);
 				out_vertices.push_back(normal.y);
 				out_vertices.push_back(normal.z);
-				out_vertices.push_back(1.0f);
 
 				out_vertices.push_back(v2.x);
 				out_vertices.push_back(v2.y);
@@ -148,7 +146,6 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 				out_vertices.push_back(normal.x);
 				out_vertices.push_back(normal.y);
 				out_vertices.push_back(normal.z);
-				out_vertices.push_back(1.0f);
 
 				out_vertices.push_back(v3.x);
 				out_vertices.push_back(v3.y);
@@ -158,7 +155,6 @@ void loadOBJ(const char * path, std::vector<GLfloat> & out_vertices)
 				out_vertices.push_back(normal.x);
 				out_vertices.push_back(normal.y);
 				out_vertices.push_back(normal.z);
-				out_vertices.push_back(1.0f);
 			}
 		}
 

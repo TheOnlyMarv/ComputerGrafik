@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ObjectLoader.cpp" />
+    <ClCompile Include="shader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ObjectLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="shader">
+      <UniqueIdentifier>{9f40f5d7-272a-44ea-857f-a509f4718e42}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="normalColor.v">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="normalColor.f">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="cartoon.v">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="cartoon.f">
+      <Filter>shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -115,6 +115,16 @@
   <ItemGroup>
     <ClInclude Include="ObjectLoader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="cartoon.f" />
+    <None Include="cartoon.v" />
+    <None Include="normalColor.f">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="normalColor.v">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

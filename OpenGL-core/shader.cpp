@@ -18,6 +18,9 @@
 #include <string>
 #include <vector>
 
+#include <fstream>
+#include <sstream>
+
 using namespace std;
 
 GLfloat rotx = 0;
@@ -25,7 +28,7 @@ GLfloat roty = 0;
 
 glm::vec3 rot(0.0f);
 glm::vec3 trans(0.0f);
-glm::vec3 scale(1.0f);
+glm::vec3 scale(0.01f);
 
 //const GLfloat vertexPositions[] = {
 //	0.75f, 0.75f, 0.0f, 1.0f,        1.0f, 0.0f, 0.0f, 1.0f,
@@ -38,53 +41,6 @@ std::vector<float> vertexData;
 
 GLuint positionBufferObject = 0;
 GLuint theProgram = 0;
-
-const char vs1[] = R"EOF(
-#version 330
-layout(location = 0) in vec4 position;
-
-uniform mat4 transform;
-void main() {
-    gl_Position = transform * position;
-}
-)EOF";
-
-const char fs1[] = R"EOF(
-#version 330
-out vec4 outColor;
-void main(){
-   outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-}
-)EOF";
-
-const char vs2[] = R"EOF(
-#version 330
-layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 color;
-
-layout(std140) uniform TBlock{
-	mat4 transform;
-	mat4 look;
-	mat4 proj;
-};
-
-smooth out vec4 myColor;
-void main() {
-    gl_Position = proj * look * transform * position;
-	myColor = color;
-}
-)EOF";
-
-const char fs2[] = R"EOF(
-#version 330
-smooth in vec4 myColor;
-out vec4 outColor;
-void main(){
-   //outColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
-	outColor = vec4(abs(myColor.x), abs(myColor.y), abs(myColor.z), 1.0f);
-}
-)EOF";
-
 
 GLuint CreateShader(GLenum eShaderType, const char *strShader)
 {
@@ -131,7 +87,10 @@ void RenderScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glEnable(GL_CULL_FACE);
+
 	glUseProgram(theProgram);
+
 
 	struct {
 		glm::mat4 transform;
@@ -146,7 +105,7 @@ void RenderScene(void)
 	
 	
 	tblock.look = glm::lookAt(glm::vec3(0, 0, -3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
-	tblock.proj = glm::perspective(60.0f, 1.0f, 0.1f, 20.0f);
+	tblock.proj = glm::perspective(60.0f, 1.0f, 0.0f, 20.0f);
 	tblock.proj = glm::scale(tblock.proj, scale);
 
 	GLuint blockIndex = glGetUniformBlockIndex(theProgram, "TBlock");
@@ -171,23 +130,47 @@ void RenderScene(void)
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const GLvoid*)(sizeof(GLfloat) * 4));
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 7, 0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 7, (const GLvoid*)(sizeof(GLfloat) * 4));
 
-	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() /4 /2);
+	glDrawArrays(GL_TRIANGLES, 0, vertexData.size() /2);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 	glUseProgram(0);
 
+	glDisable(GL_CULL_FACE);
+
 	glutSwapBuffers();
 }
+
+///////////////////////////////////////////////////////////
+// File Reader
+std::string readFile(const char *filePath) {
+	std::string content;
+	std::ifstream fileStream(filePath, std::ios::in);
+
+	if (!fileStream.is_open()) {
+		std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
+		return "";
+	}
+
+	std::string line = "";
+	while (!fileStream.eof()) {
+		std::getline(fileStream, line);
+		content.append(line + "\n");
+	}
+
+	fileStream.close();
+	return content;
+}
+
 
 ///////////////////////////////////////////////////////////
 // Setup the rendering state
 void SetupRC(void)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// setup vertex buffer
 	glGenBuffers(1, &positionBufferObject);
@@ -197,8 +180,10 @@ void SetupRC(void)
 
 	// make shaders
 	vector<GLuint> shaders;
-	shaders.push_back(CreateShader(GL_VERTEX_SHADER, /*includeNormals ? vs2 :*/ vs2));
-	shaders.push_back(CreateShader(GL_FRAGMENT_SHADER, /*includeNormals ? fs2 :*/ fs2));
+	std::string vs = readFile("normalColor.v");
+	std::string fs = readFile("normalColor.f");
+	shaders.push_back(CreateShader(GL_VERTEX_SHADER, vs.c_str()));
+	shaders.push_back(CreateShader(GL_FRAGMENT_SHADER, fs.c_str()));
 	theProgram = CreateProgram(shaders);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -213,8 +198,8 @@ void keyPress(unsigned char k, int x, int y)
 	case 'X': rot.x -= 0.1f; break;
 	case 'Y': rot.y -= 0.1f; break;
 	case 'Z': rot.z -= 0.1f; break;
-	case '+': scale.z += 0.1f; break;
-	case '-': scale.z -= 0.1f; break;
+	case '+': scale.z += 0.001f; break;
+	case '-': scale.z -= 0.001f; break;
 	case 'w': trans.y += 0.1f;break;
 	case 's': trans.y -= 0.1f;break;
 	case 'd': trans.x += 0.1f;break;
