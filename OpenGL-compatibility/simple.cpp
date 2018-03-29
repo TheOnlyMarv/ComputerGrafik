@@ -121,8 +121,8 @@ int main(int argc, char* argv[])
 	//glutReshapeFunc(ChangeView);
 	//SetupTeapot();
 	//SetupRobot();
-	SetupWavefrontModel();
-	SetupRC();
+	//SetupWavefrontModel();
+	//SetupRC();
 
 	// For Bouncing Rectangle
 	glutTimerFunc(33, BouncingRectangle, 1);

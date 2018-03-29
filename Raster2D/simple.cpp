@@ -629,14 +629,14 @@ int main(int argc, char* argv[])
 	SetupRC();
 	////////// put your framebuffer drawing code here /////////////
 
-	/*test1();
-	test2();
-	testCircle();*/
-	/*testCasteljau();*/
-	/*testFilledRectangle();*/
-	/*testFillTriangle();*/
-	/*testFillPolygon();*/
-	testWuLine();
+	//test1();
+	//test2(); //fancy star
+	//testCircle();
+	testCasteljau();
+	//testFilledRectangle();
+	//testFillTriangle();
+	//testFillPolygon();
+	//testWuLine();
 
 	/////////////////////////////////
 	glutMainLoop();
